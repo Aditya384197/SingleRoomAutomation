@@ -61,6 +61,13 @@ static void wifi_maintain() {
   if (WiFi.status() == WL_CONNECTED) {
     consecutiveFailedAttempts = 0;
     if (!dashboardStarted) {
+      // 🔥 FIX: In non-blocking mode WiFiManager's own config-portal webserver
+      // (the "Configure WiFi / Info / Update / Erase" page) keeps running on
+      // port 80 even after a successful connection - it does not shut itself
+      // down automatically. Without this, our AsyncWebServer either fails to
+      // bind port 80 or loses to WiFiManager's server, so you always see
+      // WiFiManager's own page instead of the Fan/LED dashboard.
+      wm.stopConfigPortal();
       webDashboard_begin();
       dashboardStarted = true;
       Serial.println("[WIFI] Connected: " + WiFi.localIP().toString());
